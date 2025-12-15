@@ -1,6 +1,7 @@
 import prisma from "../config/prisma";
 import { RegisterInput, LoginInput } from "../dtos/auth.dto";
 import bcrypt from "bcrypt";
+import { signToken } from "../utils/jwt";
 
 export class AuthService {
   async register(data: RegisterInput) {
@@ -22,7 +23,9 @@ export class AuthService {
       }
     });
 
-    return user;
+    const token = signToken({ userId: user.id });
+
+    return { user, token };
   }
 
   async login(data: LoginInput) {
@@ -43,6 +46,8 @@ export class AuthService {
       throw new Error("Invalid credentials");
     }
 
-    return user;
+    const token = signToken({ userId: user.id });
+
+    return { user, token };
   }
 }
