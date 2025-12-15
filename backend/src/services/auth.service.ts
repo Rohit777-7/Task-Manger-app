@@ -1,5 +1,6 @@
 import prisma from "../config/prisma";
 import { RegisterInput, LoginInput } from "../dtos/auth.dto";
+import bcrypt from "bcrypt";
 
 export class AuthService {
   async register(data: RegisterInput) {
@@ -11,11 +12,12 @@ export class AuthService {
       throw new Error("User already exists");
     }
 
-    // password hashing will be added next step
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
     const user = await prisma.user.create({
       data: {
         email: data.email,
-        password: data.password,
+        password: hashedPassword,
         name: data.name
       }
     });
@@ -32,7 +34,15 @@ export class AuthService {
       throw new Error("Invalid credentials");
     }
 
-    // password compare will be added next step
+    const isPasswordValid = await bcrypt.compare(
+      data.password,
+      user.password
+    );
+
+    if (!isPasswordValid) {
+      throw new Error("Invalid credentials");
+    }
+
     return user;
   }
 }
