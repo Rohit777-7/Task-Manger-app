@@ -48,6 +48,8 @@ export class AuthService {
 
     const token = signToken({ userId: user.id });
 
-    return { user, token };
+   const { password, ...safeUser } = user;
+    return { user: safeUser, token };
+
   }
 }
