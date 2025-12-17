@@ -1,13 +1,14 @@
 {
- "compilerOptions": {
+  "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
-    "outDir": "dist",
     "rootDir": "src",
-    "strict": false,
+    "outDir": "dist",
     "esModuleInterop": true,
+    "strict": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node", "express"]
   },
   "include": ["src"],
   "exclude": ["node_modules", "prisma"]

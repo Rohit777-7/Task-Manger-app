@@ -5,6 +5,9 @@ interface JwtPayload {
   userId: string;
 }
 
+/**
+ * Extend Express Request properly
+ */
 export interface AuthRequest extends Request {
   userId?: string;
 }
@@ -29,6 +32,7 @@ export const authMiddleware = (
     ) as JwtPayload;
 
     req.userId = decoded.userId;
+
     next();
   } catch (error) {
     return res.status(401).json({ message: "Invalid or expired token" });
