@@ -1,27 +1,44 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import "../index.css";
+
+type Task = {
+  id: string;
+  title: string;
+  status: "TODO" | "COMPLETED";
+};
 
 export default function Dashboard() {
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
-    api.get("/api/tasks/created").then(res => {
-      setTasks(res.data);
-    });
+    api.get("/api/tasks/created")
+      .then(res => setTasks(res.data))
+      .catch(() => setTasks([]));
   }, []);
 
   return (
     <div className="container">
-      <div className="dashboard">
-        <h1>Dashboard ✅</h1>
-        <p>You are logged in</p>
+      <div className="card">
+        <h1>
+          Dashboard <span style={{ color: "#4caf50" }}>✔</span>
+        </h1>
+        <p style={{ marginBottom: 20 }}>You are logged in successfully</p>
 
-        <h2 style={{ marginTop: 20 }}>My Tasks</h2>
+        <h2>My Tasks</h2>
+
+        {tasks.length === 0 && (
+          <p style={{ color: "#777" }}>No tasks found</p>
+        )}
 
         {tasks.map(task => (
           <div className="task" key={task.id}>
-            <b>{task.title}</b>
-            <span className={`badge ${task.status === "TODO" ? "todo" : "completed"}`}>
+            <span>{task.title}</span>
+            <span
+              className={`badge ${
+                task.status === "COMPLETED" ? "completed" : "todo"
+              }`}
+            >
               {task.status}
             </span>
           </div>
