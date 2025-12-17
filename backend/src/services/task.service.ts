@@ -7,21 +7,21 @@ export class TaskService {
     const task = await prisma.task.create({
       data: {
         title: data.title,
-        description: data.description ?? "",
+        description: data.description || "",
         dueDate: new Date(data.dueDate),
         priority: data.priority,
         status: data.status,
         creatorId,
-        assignedToId: data.assignedToId
+        assignedToId: data.assignedToId || ""
       }
     });
 
     return task;
   }
 
-  // GET TASKS CREATED BY USER
+  // TASKS CREATED BY USER
   async getTasksCreatedByUser(userId: string) {
-    const tasks = await prisma.task.findMany({
+    return prisma.task.findMany({
       where: {
         creatorId: userId
       },
@@ -29,7 +29,35 @@ export class TaskService {
         createdAt: "desc"
       }
     });
+  }
 
-    return tasks;
+  // TASKS ASSIGNED TO USER
+  async getTasksAssignedToUser(userId: string) {
+    return prisma.task.findMany({
+      where: {
+        assignedToId: userId
+      },
+      orderBy: {
+        dueDate: "asc"
+      }
+    });
+  }
+
+  // OVERDUE TASKS
+  async getOverdueTasks(userId: string) {
+    return prisma.task.findMany({
+      where: {
+        assignedToId: userId,
+        dueDate: {
+          lt: new Date()
+        },
+        status: {
+          not: "COMPLETED"
+        }
+      },
+      orderBy: {
+        dueDate: "asc"
+      }
+    });
   }
 }
