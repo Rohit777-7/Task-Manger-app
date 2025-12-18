@@ -26,8 +26,6 @@ export default function Dashboard() {
             id: t._id || t.id,
             title: t.title,
             status: t.status,
-            description: t.description,
-            dueDate: t.dueDate
           }))
         );
       } catch (error: any) {
@@ -46,11 +44,7 @@ export default function Dashboard() {
     try {
       const res = await api.post("/api/tasks", {
         title: newTask,
-        description: "",
-        dueDate: new Date().toISOString(),
-        priority: "LOW",
         status: "TODO",
-        assignedToId: localStorage.getItem("userId") || undefined
       });
 
       setTasks([
@@ -103,13 +97,12 @@ export default function Dashboard() {
 
         {/* TASK LIST */}
         <div className="task-list">
-          {tasks.length === 0 && (
-            <p className="empty">No tasks yet</p>
-          )}
+          {tasks.length === 0 && <p className="empty">No tasks yet</p>}
 
           {tasks.map((t) => (
             <div className="task-item" key={t.id}>
               <span className="task-title">{t.title}</span>
+
               <span
                 className={`badge ${
                   t.status === "TODO" ? "todo" : "done"
@@ -119,45 +112,83 @@ export default function Dashboard() {
               </span>
 
               <div className="task-actions">
-                <button className="btn edit"
+                {/* EDIT */}
+                <button
+                  className="btn edit"
                   onClick={async () => {
                     const newTitle = prompt("Edit task title", t.title);
-                    if (newTitle && newTitle.trim() !== t.title) {
-                      try {
-                        await api.put(`/api/tasks/${t.id}`, { title: newTitle.trim() });
-                        setTasks(tasks.map(ts => ts.id === t.id ? { ...ts, title: newTitle.trim() } : ts));
-                      } catch (err: any) {
-                        console.error(err);
-                        alert(err?.response?.data?.message || "Failed to update task");
-                      }
+                    if (!newTitle || newTitle.trim() === t.title) return;
+
+                    try {
+                      await api.put(`/api/tasks/${t.id}`, {
+                        title: newTitle.trim(),
+                      });
+
+                      setTasks((prev) =>
+                        prev.map((ts) =>
+                          ts.id === t.id
+                            ? { ...ts, title: newTitle.trim() }
+                            : ts
+                        )
+                      );
+                    } catch (err: any) {
+                      console.error(err);
+                      alert(
+                        err?.response?.data?.message ||
+                          "Failed to update task"
+                      );
                     }
                   }}
                 >
                   Edit
                 </button>
-                <button className="btn delete"
+
+                {/* DELETE */}
+                <button
+                  className="btn delete"
                   onClick={async () => {
                     if (!confirm("Delete this task?")) return;
+
                     try {
                       await api.delete(`/api/tasks/${t.id}`);
-                      setTasks(tasks.filter(ts => ts.id !== t.id));
+                      setTasks((prev) =>
+                        prev.filter((ts) => ts.id !== t.id)
+                      );
                     } catch (err: any) {
                       console.error(err);
-                      alert(err?.response?.data?.message || "Failed to delete task");
+                      alert(
+                        err?.response?.data?.message ||
+                          "Failed to delete task"
+                      );
                     }
                   }}
                 >
                   Delete
                 </button>
+
+                {/* COMPLETE */}
                 {t.status !== "COMPLETED" && (
-                  <button className="btn complete"
+                  <button
+                    className="btn complete"
                     onClick={async () => {
                       try {
-                        await api.patch(`/api/tasks/${t.id}/complete`);
-                        setTasks(tasks.map(ts => ts.id === t.id ? { ...ts, status: "COMPLETED" } : ts));
+                        await api.put(`/api/tasks/${t.id}`, {
+                          status: "COMPLETED",
+                        });
+
+                        setTasks((prev) =>
+                          prev.map((ts) =>
+                            ts.id === t.id
+                              ? { ...ts, status: "COMPLETED" }
+                              : ts
+                          )
+                        );
                       } catch (err: any) {
                         console.error(err);
-                        alert(err?.response?.data?.message || "Failed to complete task");
+                        alert(
+                          err?.response?.data?.message ||
+                            "Failed to complete task"
+                        );
                       }
                     }}
                   >
