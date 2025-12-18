@@ -11,6 +11,10 @@ export default function Login() {
     try {
       const res = await api.post("/api/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
+      // store user id for assigning tasks
+      if (res.data.user?.id) {
+        localStorage.setItem("userId", res.data.user.id);
+      }
       navigate("/dashboard");
     } catch {
       alert("Login failed");

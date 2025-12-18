@@ -49,7 +49,8 @@ export default function Dashboard() {
         description: "",
         dueDate: new Date().toISOString(),
         priority: "LOW",
-        status: "TODO"
+        status: "TODO",
+        assignedToId: localStorage.getItem("userId") || undefined
       });
 
       setTasks([
@@ -136,12 +137,13 @@ export default function Dashboard() {
                 </button>
                 <button className="btn delete"
                   onClick={async () => {
+                    if (!confirm("Delete this task?")) return;
                     try {
                       await api.delete(`/api/tasks/${t.id}`);
-                      setTasks(prev => prev.filter(ts => ts.id !== t.id));
+                      setTasks(tasks.filter(ts => ts.id !== t.id));
                     } catch (err: any) {
-                      console.error("Failed to delete task", err);
-                      // no alert per UX preference
+                      console.error(err);
+                      alert(err?.response?.data?.message || "Failed to delete task");
                     }
                   }}
                 >
