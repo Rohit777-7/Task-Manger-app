@@ -1,11 +1,19 @@
-export const saveToken = (token: string) => {
+// Save JWT token after login
+export const saveToken = (token: string): void => {
   localStorage.setItem("token", token);
 };
 
-export const logout = () => {
-  localStorage.removeItem("token");
+// Get token (used in axios interceptor)
+export const getToken = (): string | null => {
+  return localStorage.getItem("token");
 };
 
-export const isLoggedIn = () => {
-  return !!localStorage.getItem("token");
+// Check if user is logged in
+export const isAuthenticated = (): boolean => {
+  return Boolean(localStorage.getItem("token"));
+};
+
+// Logout user
+export const logout = (): void => {
+  localStorage.removeItem("token");
 };

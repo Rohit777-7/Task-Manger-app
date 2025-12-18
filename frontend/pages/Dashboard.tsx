@@ -1,48 +1,171 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
-import "../index.css";
+import { logout } from "../utils/auth";
+import { useNavigate } from "react-router-dom";
 
+/* ================= TYPES ================= */
 type Task = {
   id: string;
   title: string;
   status: "TODO" | "COMPLETED";
 };
 
+/* ================= COMPONENT ================= */
 export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [newTask, setNewTask] = useState("");
+  const navigate = useNavigate();
 
+  /* ================= FETCH TASKS ================= */
   useEffect(() => {
-    api.get("/api/tasks/created")
-      .then(res => setTasks(res.data))
-      .catch(() => setTasks([]));
+    const fetchTasks = async () => {
+      try {
+        const res = await api.get("/api/tasks/created");
+        setTasks(
+          res.data.map((t: any) => ({
+            id: t._id || t.id,
+            title: t.title,
+            status: t.status,
+            description: t.description,
+            dueDate: t.dueDate
+          }))
+        );
+      } catch (error: any) {
+        console.error("Failed to fetch tasks", error);
+        alert(error?.response?.data?.message || "Failed to fetch tasks");
+      }
+    };
+
+    fetchTasks();
   }, []);
 
-  return (
-    <div className="container">
-      <div className="card">
-        <h1>
-          Dashboard <span style={{ color: "#4caf50" }}>✔</span>
-        </h1>
-        <p style={{ marginBottom: 20 }}>You are logged in successfully</p>
+  /* ================= ADD TASK ================= */
+  const addTask = async () => {
+    if (!newTask.trim()) return;
 
+    try {
+      const res = await api.post("/api/tasks", {
+        title: newTask,
+        description: "",
+        dueDate: new Date().toISOString(),
+        priority: "LOW",
+        status: "TODO"
+      });
+
+      setTasks([
+        ...tasks,
+        {
+          id: res.data._id || res.data.id,
+          title: res.data.title,
+          status: res.data.status,
+        },
+      ]);
+
+      setNewTask("");
+    } catch (error: any) {
+      console.error(error);
+      alert(error?.response?.data?.message || "Failed to add task");
+    }
+  };
+
+  /* ================= LOGOUT ================= */
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  /* ================= UI ================= */
+  return (
+    <div className="dashboard-container">
+      {/* HEADER */}
+      <div className="dashboard-header">
+        <h1>Task Manager</h1>
+        <button className="logout-btn" onClick={handleLogout}>
+          Logout
+        </button>
+      </div>
+
+      {/* CARD */}
+      <div className="dashboard-card glass">
         <h2>My Tasks</h2>
 
-        {tasks.length === 0 && (
-          <p style={{ color: "#777" }}>No tasks found</p>
-        )}
+        {/* ADD TASK */}
+        <div className="add-task">
+          <input
+            type="text"
+            placeholder="Enter new task..."
+            value={newTask}
+            onChange={(e) => setNewTask(e.target.value)}
+          />
+          <button onClick={addTask}>Add</button>
+        </div>
 
-        {tasks.map(task => (
-          <div className="task" key={task.id}>
-            <span>{task.title}</span>
-            <span
-              className={`badge ${
-                task.status === "COMPLETED" ? "completed" : "todo"
-              }`}
-            >
-              {task.status}
-            </span>
-          </div>
-        ))}
+        {/* TASK LIST */}
+        <div className="task-list">
+          {tasks.length === 0 && (
+            <p className="empty">No tasks yet</p>
+          )}
+
+          {tasks.map((t) => (
+            <div className="task-item" key={t.id}>
+              <span className="task-title">{t.title}</span>
+              <span
+                className={`badge ${
+                  t.status === "TODO" ? "todo" : "done"
+                }`}
+              >
+                {t.status}
+              </span>
+
+              <div className="task-actions">
+                <button className="btn edit"
+                  onClick={async () => {
+                    const newTitle = prompt("Edit task title", t.title);
+                    if (newTitle && newTitle.trim() !== t.title) {
+                      try {
+                        await api.put(`/api/tasks/${t.id}`, { title: newTitle.trim() });
+                        setTasks(tasks.map(ts => ts.id === t.id ? { ...ts, title: newTitle.trim() } : ts));
+                      } catch (err: any) {
+                        console.error(err);
+                        alert(err?.response?.data?.message || "Failed to update task");
+                      }
+                    }
+                  }}
+                >
+                  Edit
+                </button>
+                <button className="btn delete"
+                  onClick={async () => {
+                    try {
+                      await api.delete(`/api/tasks/${t.id}`);
+                      setTasks(prev => prev.filter(ts => ts.id !== t.id));
+                    } catch (err: any) {
+                      console.error("Failed to delete task", err);
+                      // no alert per UX preference
+                    }
+                  }}
+                >
+                  Delete
+                </button>
+                {t.status !== "COMPLETED" && (
+                  <button className="btn complete"
+                    onClick={async () => {
+                      try {
+                        await api.patch(`/api/tasks/${t.id}/complete`);
+                        setTasks(tasks.map(ts => ts.id === t.id ? { ...ts, status: "COMPLETED" } : ts));
+                      } catch (err: any) {
+                        console.error(err);
+                        alert(err?.response?.data?.message || "Failed to complete task");
+                      }
+                    }}
+                  >
+                    Complete
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

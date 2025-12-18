@@ -38,4 +38,25 @@ router.get(
   (req, res) => taskController.getOverdueTasks(req, res)
 );
 
+// UPDATE TASK
+router.put(
+  "/:id",
+  authMiddleware,
+  (req, res) => taskController.updateTask(req, res)
+);
+
+// DELETE TASK
+router.delete(
+  "/:id",
+  authMiddleware,
+  (req, res) => taskController.deleteTask(req, res)
+);
+
+// COMPLETE TASK
+router.patch(
+  "/:id/complete",
+  authMiddleware,
+  (req, res) => taskController.completeTask(req, res)
+);
+
 export default router;

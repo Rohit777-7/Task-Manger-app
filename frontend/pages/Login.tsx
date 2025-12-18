@@ -7,44 +7,46 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const submit = async () => {
+  const handleLogin = async () => {
     try {
-      const res = await api.post("/api/auth/login", {
-        email,
-        password
-      });
-
+      const res = await api.post("/api/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
       navigate("/dashboard");
-    } catch (err: any) {
-      alert(err.response?.data?.message || "Login failed");
+    } catch {
+      alert("Login failed");
     }
   };
 
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1>Welcome Back</h1>
+        <h1 style={{ textAlign: "center", marginBottom: "25px" }}>
+          Welcome Back
+        </h1>
 
         <input
           type="email"
-          placeholder="Email address"
+          placeholder="Enter Email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
         />
 
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Enter Password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button onClick={submit}>LOGIN</button>
+        <button onClick={handleLogin}>LOGIN</button>
 
-        <div className="auth-footer">
-          Secure Task Manager • Built with ❤️
+        <div style={{ marginTop: 12, textAlign: "center" }}>
+          <small>
+            Don't have an account? <a href="/register">Sign up</a>
+          </small>
         </div>
+
+        <div className="auth-footer">Secure Task Manager • Built with ❤️</div>
       </div>
     </div>
   );

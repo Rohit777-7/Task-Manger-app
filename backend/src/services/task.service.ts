@@ -12,7 +12,8 @@ export class TaskService {
         priority: data.priority,
         status: data.status,
         creatorId,
-        assignedToId: data.assignedToId || ""
+        // default to creator if no assignedToId provided so DB relation remains valid
+        assignedToId: data.assignedToId ?? creatorId
       }
     });
 
@@ -60,4 +61,30 @@ export class TaskService {
       }
     });
   }
+
+  // UPDATE TASK
+  async updateTask(taskId: string, data: Partial<CreateTaskInput>) {
+    return prisma.task.update({
+      where: { id: taskId },
+      data: {
+        title: data.title,
+        description: data.description,
+        dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+        priority: data.priority as any,
+        status: data.status as any,
+        assignedToId: data.assignedToId
+      }
+    });
+  }
+
+  // DELETE TASK
+  async deleteTask(taskId: string) {
+    return prisma.task.delete({ where: { id: taskId } });
+  }
+
+  // COMPLETE TASK
+  async completeTask(taskId: string) {
+    return prisma.task.update({ where: { id: taskId }, data: { status: "COMPLETED" } });
+  }
 }
+
